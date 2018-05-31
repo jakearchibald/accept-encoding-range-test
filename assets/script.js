@@ -23,6 +23,13 @@ function filterData () {
     return;
   }
 
+  if (filterType === 'chrome-vs-safari') {
+    filteredData = data.filter(item =>
+      item.acceptIdentityLong.status !== item.acceptIdentity.status
+    );
+    return;
+  }
+
   // I'm only interested if one of the responses is a range
   filteredData = data.filter(item =>
     item.acceptNone.status === 206 ||
@@ -96,6 +103,7 @@ function render () {
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="diff" checked=${filterType === 'diff'}> Different results for URL.</label>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="enc-no-206" checked=${filterType === 'enc-no-206'}> Missing 206 specifically when encoding allowed.</label>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="no-enc-no-206" checked=${filterType === 'no-enc-no-206'}> Missing 206 specifically when encoding not allowed.</label>
+      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="chrome-vs-safari" checked=${filterType === 'chrome-vs-safari'}> Differences between the identity & longer identity forms (Safari vs Chrome).</label>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="unexpected-encoding" checked=${filterType === 'unexpected-encoding'}> Unexpected encoding.</label>
     </fieldset>
     <p>
@@ -106,12 +114,12 @@ function render () {
       <thead>
         <tr>
           <th rowspan=2>URL</th>
-          ${acceptEncodingTypesObjs.map(type => hyperHTML.wire(type)`
+          ${acceptEncodingTypesObjs.map(type => hyperHTML.wire(type, ':heading')`
             <th colspan=2>${type.name}</th>
           `)}
         </tr>
         <tr>
-          ${acceptEncodingTypesObjs.map(type => hyperHTML.wire(type)`
+          ${acceptEncodingTypesObjs.map(type => hyperHTML.wire(type, ':sub-heading')`
             <th>Status</th>
             <th>Encoding</th>
           `)}
@@ -130,7 +138,7 @@ function render () {
 
             return hyperHTML.wire(responseData)`
               <td class="${responseData.status !== 206 ? 'unexpected' : ''}">${responseData.status}</td>
-              <td class="${unexpectedEncoding ? 'unexpected' : ''}">${responseData.encoding || '-'}</td>
+              <td class="${unexpectedEncoding ? 'unexpected' : ''}">${responseData.encoding || ''}</td>
             `;
           })}
         </tr>

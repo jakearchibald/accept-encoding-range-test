@@ -27,7 +27,7 @@ Accept-Encoding: gzip, deflate, br
 
 And records the status code & `Content-Encoding` header for each response, or `{err: true}` if the request timed out or failed.
 
-The results are in `results/out.json`.
+The results are in `results/out.json`, but I recommend the interactive [html results](https://jakearchibald.github.io/accept-encoding-range-test/) (depends on modern features like transform streams, so may only work in Chrome).
 
 **Note:** The data is [ndjson](http://ndjson.org/). Also, some servers may be unstable and return different results each time.
 
