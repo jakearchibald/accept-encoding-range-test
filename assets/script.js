@@ -1,9 +1,13 @@
 import { decodeText, newlineSplit, parseJSON } from './transforms.js';
 import { iterateStream } from './utils.js';
 
+const output = document.querySelector('.output');
+
+// state:
 const data = [];
 let filterType = 'diff';
 let filteredData = [];
+let stillFetching = true;
 
 function filterData () {
   if (filterType === 'none') {
@@ -85,7 +89,7 @@ const acceptEncodingTypesObjs = acceptEncodingTypes.map(t => ({name: t}));
 const percentFormatter = new Intl.NumberFormat('en', { maximumFractionDigits: 2 });
 
 function render () {
-  hyperHTML(document.body)`
+  hyperHTML(output)`
     <fieldset class="filter-type">
       <legend>Apply filter:</legend>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="none" checked=${filterType === 'none'}> None (slow).</label>
@@ -94,8 +98,10 @@ function render () {
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="no-enc-no-206" checked=${filterType === 'no-enc-no-206'}> Missing 206 specifically when encoding not allowed.</label>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="unexpected-encoding" checked=${filterType === 'unexpected-encoding'}> Unexpected encoding.</label>
     </fieldset>
-    <p>Showing ${filteredData.length} of ${data.length} (${percentFormatter.format(filteredData.length / data.length * 100)}%)</p>
-    <p><strong>Warning:</strong> These URLs are media files from the web. As such many will be unsafe for work.</p>
+    <p>
+      Showing ${filteredData.length} of ${data.length} (${percentFormatter.format(filteredData.length / data.length * 100)}%)
+      ${stillFetching ? '(still fetching)' : ''}
+    </p>
     <table class="data-table">
       <thead>
         <tr>
@@ -136,6 +142,10 @@ function render () {
 let pendingFrame;
 
 async function main () {
+  pendingFrame = requestAnimationFrame(() => {
+    render();
+  });
+
   const response = await self.prefetch;
   const stream = response.body
     .pipeThrough(decodeText())
@@ -150,6 +160,9 @@ async function main () {
       render();
     });
   }
+
+  stillFetching = false;
+  render();
 }
 
 main();
