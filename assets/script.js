@@ -136,7 +136,7 @@ function render () {
 let pendingFrame;
 
 async function main () {
-  const response = await fetch('results/out.json', { credentials: 'same-origin' });
+  const response = await self.prefetch;
   const stream = response.body
     .pipeThrough(decodeText())
     .pipeThrough(newlineSplit())
