@@ -11,6 +11,14 @@ function filterData () {
     return;
   }
 
+  if (filterType === 'unexpected-encoding') {
+    filteredData = data.filter(item =>
+      item.acceptIdentityLong.encoding ||
+      item.acceptIdentity.encoding
+    );
+    return;
+  }
+
   // I'm only interested if one of the responses is a range
   filteredData = data.filter(item =>
     item.acceptNone.status === 206 ||
@@ -31,7 +39,8 @@ function filterData () {
     });
     return;
   }
-  else if (filterType === 'enc-no-206') {
+
+  if (filterType === 'enc-no-206') {
     filteredData = filteredData.filter(item =>
       (
         item.acceptNone.status === 206 ||
@@ -40,8 +49,10 @@ function filterData () {
       ) &&
       item.acceptEncoding.status !== 206
     );
+    return;
   }
-  else if (filterType === 'no-enc-no-206') {
+
+  if (filterType === 'no-enc-no-206') {
     filteredData = filteredData.filter(item =>
       (
         item.acceptNone.status !== 206 ||
@@ -50,6 +61,7 @@ function filterData () {
       ) &&
       item.acceptEncoding.status === 206
     );
+    return;
   }
 }
 
@@ -80,6 +92,7 @@ function render () {
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="diff" checked=${filterType === 'diff'}> Different results for URL.</label>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="enc-no-206" checked=${filterType === 'enc-no-206'}> Missing 206 specifically when encoding allowed.</label>
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="no-enc-no-206" checked=${filterType === 'no-enc-no-206'}> Missing 206 specifically when encoding not allowed.</label>
+      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="unexpected-encoding" checked=${filterType === 'unexpected-encoding'}> Unexpected encoding.</label>
     </fieldset>
     <p>Showing ${filteredData.length} of ${data.length} (${percentFormatter.format(filteredData.length / data.length * 100)}%)</p>
     <p><strong>Warning:</strong> These URLs are media files from the web. As such many will be unsafe for work.</p>
@@ -107,7 +120,7 @@ function render () {
               <td colspan=2 class="unexpected">Err</td>
             `;
 
-            const unexpectedEncoding = type !== 'acceptEncoding' && responseData.encoding;
+            const unexpectedEncoding = type.startsWith('acceptIdentity') && responseData.encoding;
 
             return hyperHTML.wire(responseData)`
               <td class="${responseData.status !== 206 ? 'unexpected' : ''}">${responseData.status}</td>
