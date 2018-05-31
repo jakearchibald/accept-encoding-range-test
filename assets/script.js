@@ -82,6 +82,7 @@ function render () {
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="no-enc-no-206" checked=${filterType === 'no-enc-no-206'}> Missing 206 specifically when encoding not allowed.</label>
     </fieldset>
     <p>Showing ${filteredData.length} of ${data.length} (${percentFormatter.format(filteredData.length / data.length * 100)}%)</p>
+    <p><strong>Warning:</strong> These URLs are media files from the web. As such many will be unsafe for work.</p>
     <table class="data-table">
       <thead>
         <tr>
