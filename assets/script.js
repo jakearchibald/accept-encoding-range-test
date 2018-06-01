@@ -130,13 +130,13 @@ function render () {
           <td class="origin"><a href=${item.url}>${new URL(item.url).origin}</a></td>
           ${acceptEncodingTypes.map(type => {
             const responseData = item[type];
-            if (responseData.err) return hyperHTML.wire(responseData)`
+            if (responseData.err) return hyperHTML.wire(responseData, ':single')`
               <td colspan=2 class="unexpected">Err</td>
             `;
 
             const unexpectedEncoding = type.startsWith('acceptIdentity') && responseData.encoding;
 
-            return hyperHTML.wire(responseData)`
+            return hyperHTML.wire(responseData, ':double')`
               <td class="${responseData.status !== 206 ? 'unexpected' : ''}">${responseData.status}</td>
               <td class="${unexpectedEncoding ? 'unexpected' : ''}">${responseData.encoding || ''}</td>
             `;
