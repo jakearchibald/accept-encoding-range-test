@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Results viewer</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>self.prefetch = fetch('results/out.json');</script>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/script-lit-cache.js" type="module" crossorigin></script>
+    <link rel="preload" as="script" href="https://unpkg.com/lit-html/lib/lit-extended.js?module" crossorigin>
+    <link rel="preload" as="script" href="assets/transforms.js" crossorigin>
+    <link rel="preload" as="script" href="assets/utils.js" crossorigin>
+  </head>
+  <body>
+    <h1>What is this?</h1>
+    <p>I took all the URLs from <a href="https://httparchive.org/">HTTP Archive</a> that ended ".mp3" or ".mp4", deduped by host, then made a range request to them with the following:</p>
+    <ul>
+      <li><p>acceptNone: No <code>Accept-Encoding</code> header (like Firefox).</p></li>
+      <li><p>acceptIdentityLong: <code>Accept-Encoding: identity;q=1, *;q=0</code> (like Chrome).</p></li>
+      <li><p>acceptIdentity: <code>Accept-Encoding: identity</code> (like Safari).</p></li>
+      <li><p>acceptEncoding: <code>Accept-Encoding: gzip, deflate, br</code> (like Edge).</p></li>
+    </ul>
+
+    <p>To run these tests yourself, see <a href="https://github.com/jakearchibald/accept-encoding-range-test">the repo</a>.</p>
+    <h1>Results</h1>
+    <p><strong>Warning:</strong> These URLs are media files from the web. As such many will be unsafe for work.</p>
+    <div class="output"></div>
+  </body>
+</html>
