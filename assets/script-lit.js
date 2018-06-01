@@ -1,3 +1,4 @@
+import { html, render } from 'https://unpkg.com/lit-html/lib/lit-extended.js?module';
 import { decodeText, newlineSplit, parseJSON } from './transforms.js';
 import { iterateStream, filterData } from './utils.js';
 
@@ -19,7 +20,7 @@ function filterOnChange (event) {
   filterType = selected.value;
 
   updateFilteredData();
-  render();
+  update();
 }
 
 const acceptEncodingTypes = [
@@ -29,19 +30,18 @@ const acceptEncodingTypes = [
   'acceptEncoding'
 ];
 
-const acceptEncodingTypesObjs = acceptEncodingTypes.map(t => ({name: t}));
 const percentFormatter = new Intl.NumberFormat('en', { maximumFractionDigits: 2 });
 
-function render () {
-  hyperHTML(output)`
+function update () {
+  render(html`
     <fieldset class="filter-type">
       <legend>Apply filter:</legend>
-      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="none" checked=${filterType === 'none'}> None (slow).</label>
-      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="diff" checked=${filterType === 'diff'}> Different results for URL.</label>
-      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="enc-no-206" checked=${filterType === 'enc-no-206'}> Missing 206 specifically when encoding allowed.</label>
-      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="no-enc-no-206" checked=${filterType === 'no-enc-no-206'}> Missing 206 specifically when encoding not allowed.</label>
-      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="chrome-vs-safari" checked=${filterType === 'chrome-vs-safari'}> Differences between the identity & longer identity forms (Safari vs Chrome).</label>
-      <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="unexpected-encoding" checked=${filterType === 'unexpected-encoding'}> Unexpected encoding.</label>
+      <label class="option"><input type="radio" name="filter" on-change=${filterOnChange} value="none" checked=${filterType === 'none'}> None (slow).</label>
+      <label class="option"><input type="radio" name="filter" on-change=${filterOnChange} value="diff" checked=${filterType === 'diff'}> Different results for URL.</label>
+      <label class="option"><input type="radio" name="filter" on-change=${filterOnChange} value="enc-no-206" checked=${filterType === 'enc-no-206'}> Missing 206 specifically when encoding allowed.</label>
+      <label class="option"><input type="radio" name="filter" on-change=${filterOnChange} value="no-enc-no-206" checked=${filterType === 'no-enc-no-206'}> Missing 206 specifically when encoding not allowed.</label>
+      <label class="option"><input type="radio" name="filter" on-change=${filterOnChange} value="chrome-vs-safari" checked=${filterType === 'chrome-vs-safari'}> Differences between the identity & longer identity forms (Safari vs Chrome).</label>
+      <label class="option"><input type="radio" name="filter" on-change=${filterOnChange} value="unexpected-encoding" checked=${filterType === 'unexpected-encoding'}> Unexpected encoding.</label>
     </fieldset>
     <p>
       Showing ${filteredData.length} of ${data.length} (${percentFormatter.format(filteredData.length / data.length * 100)}%)
@@ -51,44 +51,44 @@ function render () {
       <thead>
         <tr>
           <th rowspan=2>URL</th>
-          ${acceptEncodingTypesObjs.map(type => hyperHTML.wire(type, ':heading')`
-            <th colspan=2>${type.name}</th>
+          ${acceptEncodingTypes.map(type => html`
+            <th colspan=2>${type}</th>
           `)}
         </tr>
         <tr>
-          ${acceptEncodingTypesObjs.map(type => hyperHTML.wire(type, ':sub-heading')`
+          ${acceptEncodingTypes.map(type => html`
             <th>Status</th>
             <th>Encoding</th>
           `)}
         </tr>
       </thead>
-      ${filteredData.map(item => hyperHTML.wire(item)`
+      ${filteredData.map(item => html`
         <tr>
           <td class="origin"><a href=${item.url}>${new URL(item.url).origin}</a></td>
           ${acceptEncodingTypes.map(type => {
             const responseData = item[type];
-            if (responseData.err) return hyperHTML.wire(responseData)`
+            if (responseData.err) return html`
               <td colspan=2 class="unexpected">Err</td>
             `;
 
             const unexpectedEncoding = type.startsWith('acceptIdentity') && responseData.encoding;
 
-            return hyperHTML.wire(responseData)`
-              <td class="${responseData.status !== 206 ? 'unexpected' : ''}">${responseData.status}</td>
-              <td class="${unexpectedEncoding ? 'unexpected' : ''}">${responseData.encoding || ''}</td>
+            return html`
+              <td class$=${responseData.status !== 206 ? 'unexpected' : ''}>${responseData.status}</td>
+              <td class$=${unexpectedEncoding ? 'unexpected' : ''}>${responseData.encoding || ''}</td>
             `;
           })}
         </tr>
       `)}
     </table>
-  `;
+  `, output);
 }
 
 let pendingFrame;
 
 async function main () {
   pendingFrame = requestAnimationFrame(() => {
-    render();
+    update();
   });
 
   const response = await self.prefetch;
@@ -102,12 +102,12 @@ async function main () {
     cancelAnimationFrame(pendingFrame);
     pendingFrame = requestAnimationFrame(() => {
       updateFilteredData();
-      render();
+      update();
     });
   }
 
   stillFetching = false;
-  render();
+  update();
 }
 
 main();
