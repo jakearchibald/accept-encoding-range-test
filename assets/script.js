@@ -9,7 +9,7 @@ let filterType = 'diff';
 let filteredData = [];
 let stillFetching = true;
 
-function updateFilteredData() {
+function updateFilteredData () {
   filteredData = filterData(data, filterType);
 }
 
@@ -113,6 +113,7 @@ async function main () {
       });
     }
 
+    cancelAnimationFrame(pendingFrame);
     stillFetching = false;
     render();
   } else {
@@ -127,7 +128,6 @@ async function main () {
     updateFilteredData();
     render();
   }
-
 }
 
 main();
