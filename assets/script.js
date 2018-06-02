@@ -1,5 +1,5 @@
 import { decodeText, newlineSplit, parseJSON } from './transforms.js';
-import { iterateStream, filterData } from './utils.js';
+import { filterData } from './utils.js';
 
 const output = document.querySelector('.output');
 
@@ -44,7 +44,7 @@ function render () {
       <label class="option"><input type="radio" name="filter" onchange=${filterOnChange} value="unexpected-encoding" checked=${filterType === 'unexpected-encoding'}> Unexpected encoding.</label>
     </fieldset>
     <p>
-      Showing ${filteredData.length} of ${data.length} (${percentFormatter.format(filteredData.length / data.length * 100)}%)
+      Showing ${filteredData.length} of ${data.length} (${data.length ? percentFormatter.format(filteredData.length / data.length * 100) : 0}%)
       ${stillFetching ? '(still fetching)' : ''}
     </p>
     <table class="data-table">
@@ -92,22 +92,42 @@ async function main () {
   });
 
   const response = await self.prefetch;
-  const stream = response.body
-    .pipeThrough(decodeText())
-    .pipeThrough(newlineSplit())
-    .pipeThrough(parseJSON());
 
-  for await (const item of iterateStream(stream)) {
-    data.push(item);
-    cancelAnimationFrame(pendingFrame);
-    pendingFrame = requestAnimationFrame(() => {
-      updateFilteredData();
-      render();
-    });
+  if ('TransformStream' in self) {
+    // Progressive render using streams:
+    const stream = response.body
+      .pipeThrough(decodeText())
+      .pipeThrough(newlineSplit())
+      .pipeThrough(parseJSON());
+
+    const reader = stream.getReader();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      data.push(value);
+      cancelAnimationFrame(pendingFrame);
+      pendingFrame = requestAnimationFrame(() => {
+        updateFilteredData();
+        render();
+      });
+    }
+
+    stillFetching = false;
+    render();
+  } else {
+    // Just process all the data at once
+    const text = await response.text();
+
+    for (const item of text.split('\n')) {
+      if (!item.trim()) continue;
+      data.push(JSON.parse(item));
+    }
+    stillFetching = false;
+    updateFilteredData();
+    render();
   }
 
-  stillFetching = false;
-  render();
 }
 
 main();
