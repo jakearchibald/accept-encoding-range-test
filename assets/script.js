@@ -115,6 +115,7 @@ async function main () {
 
     cancelAnimationFrame(pendingFrame);
     stillFetching = false;
+    updateFilteredData();
     render();
   } else {
     // Just process all the data at once
