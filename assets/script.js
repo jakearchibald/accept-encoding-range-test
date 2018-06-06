@@ -63,22 +63,23 @@ function render () {
         </tr>
       </thead>
       ${filteredData.map(item => hyperHTML.wire(item)`
-        <tr>
-          <td class="origin"><a href=${item.url}>${new URL(item.url).origin}</a></td>
-          ${acceptEncodingTypes.map(type => {
+        <tr>${
+          [
+            hyperHTML.wire(item, ':first')`
+            <td class="origin"><a href=${item.url}>${new URL(item.url).origin}</a></td>`
+          ].concat(acceptEncodingTypes.map(type => {
             const responseData = item[type];
-            if (responseData.err) return hyperHTML.wire(responseData)`
-              <td colspan=2 class="unexpected">Err</td>
-            `;
+            if (responseData.err)
+              return hyperHTML.wire(responseData)`
+              <td colspan=2 class="unexpected">Err</td>`;
 
             const unexpectedEncoding = type.startsWith('acceptIdentity') && responseData.encoding;
-
             return hyperHTML.wire(responseData)`
               <td class="${responseData.status !== 206 ? 'unexpected' : ''}">${responseData.status}</td>
               <td class="${unexpectedEncoding ? 'unexpected' : ''}">${responseData.encoding || ''}</td>
             `;
-          })}
-        </tr>
+          }))
+        }</tr>
       `)}
     </table>
   `;
